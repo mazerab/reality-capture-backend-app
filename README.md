@@ -1,6 +1,6 @@
 # reality-capture-backend-app
 
-AWS lambda backend app for the [Autodesk Forge Reality Capture App](https://github.com/mazerab/reality-capture-mobile-app).
+AWS lambda backend app for the [Autodesk Forge Reality Capture mobile app](https://github.com/mazerab/reality-capture-mobile-app).
 
 ## Getting Started
 
