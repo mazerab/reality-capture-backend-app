@@ -20,6 +20,18 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 2. Run `npm install`
 3. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
 4. Edit the file `package.json` to update the Amazon access key ID and secret on line 11 `--set-env AWS_ACCESS_KEY_ID=xxx,AWS_SECRET_ACCESS_KEY=xxx`
+5. Run `npm run setvars` to push the environment variables to Lambda.
+6. Open the 'new URL' in a browser
+
+**Example:** [https://adc6qwtnce.execute-api.us-east-1.amazonaws.com/demo/](https://adc6qwtnce.execute-api.us-east-1.amazonaws.com/demo/)
+
+> Remember to add a '/' or a '/index.html' to the URL.
+
+### Updating the app
+
+1. Make a code change to file ```'www/index.html'```
+2. Run `npm run update`... It outputs a 'new URL'
+3. Open the 'new URL' in a browser to see your changes.
 
 ### Deployment
 
