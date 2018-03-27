@@ -56,3 +56,15 @@ Bastien Mazeran, Autodesk Inc.
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
 ### Acknowledgements
+
+This code came from [GITHUB-Express-Lambda](https://github.com/claudiajs/example-projects/tree/master/express-app-lambda)
+
+More information on Express/Serverless can be found here:
+[Running Express Apps in AWS Lambda](https://claudiajs.com/tutorials/serverless-express.html)  
+
+The package.json was modified from here: [Package.json](
+https://vincetocco.com/serverless-code/)
+
+[Why use Claudia?](https://github.com/claudiajs/claudia/blob/master/FAQ.md)
+
+Inspired by [this blog post](https://forge.autodesk.com/blog/running-forge-viewer-aws-lambda-server-and-api-gateway), by Philippe Leefsma.
