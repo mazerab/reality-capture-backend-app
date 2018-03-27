@@ -29,6 +29,8 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 
 ### Updating the app
 
+Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-express.html) 'update' command to re-deploy a small html code change. Claudia handles the task of zipping, uploading and re-wiring node.js endpoints to 'AWS-Lambda & API-Gateway' automatically. 
+
 1. Make a code change to file ```'www/index.html'```
 2. Run `npm run update`... It outputs a 'new URL'
 3. Open the 'new URL' in a browser to see your changes.
