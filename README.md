@@ -35,8 +35,6 @@ Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-ex
 2. Run `npm run update`... It outputs a 'new URL'
 3. Open the 'new URL' in a browser to see your changes.
 
-### Deployment
-
 ## Testing
 
 ## Built With
