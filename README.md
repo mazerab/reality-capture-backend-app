@@ -9,19 +9,21 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 1. Create a new repository directory
 2. Download [this repository](https://github.com/mazerab/reality-capture-backend-app/archive/master.zip) and extract to the new directory
 
-### Prerequisites
+## Prerequisites
 
 1. Install [Node.js and npm](https://www.npmjs.com/get-npm)
 2. Run `npm install npm@latest -g`
 
-### Installing
+## Installing
 
 1. Browse to the repository directory
 2. Run `npm install`
 3. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
 4. Edit the file `package.json` to update the Amazon access key ID and secret on line 11 `--set-env AWS_ACCESS_KEY_ID=xxx,AWS_SECRET_ACCESS_KEY=xxx`
 
-### Deployment
+## Deployment
+
+### Testing
 
 ### Built With
 * [Amazon Lambda](https://aws.amazon.com/lambda/) - Run code without thinking about servers.
