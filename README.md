@@ -55,7 +55,7 @@ Bastien Mazeran, Autodesk Inc.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
-### Acknowledgements
+## Acknowledgements
 
 This code came from [GITHUB-Express-Lambda](https://github.com/claudiajs/example-projects/tree/master/express-app-lambda)
 
