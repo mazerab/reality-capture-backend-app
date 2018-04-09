@@ -1,614 +1,409 @@
 'use strict';
 
-const express = require('express');
 const bodyParser = require('body-parser');
-const fs = require('fs');
-const request = require('request');
+const Expo = require('expo-server-sdk');
+const express = require('express');
+const fetch = require('node-fetch');
+const forgeSDK = require('forge-apis');
+const redis = require('redis');
+const rp = require('request-promise');
 
 // Load configuration settings
 const config = require('./config');
 
-// Load the AWS SDK for Node.js
-const AWS = require('aws-sdk');
-AWS.config.update({
-    signatureVersion: 'v4',
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID, 
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: 'us-east-1'
+// Load Redis
+const client = redis.createClient(config.REDIS_PORT, config.REDIS_ENDPOINT, {no_ready_check: true});
+client.auth(process.env.REDIS_PASSWORD, function(err) {
+  if (err) { console.error('ERROR: Redis authentification failed: ' + err); };
 });
-const s3 = new AWS.S3();
+client.on('connect', function() { console.info('INFO: Connected to Redis'); });
 
-// Load Express
+// Load Expo SDK client
+const expo = new Expo();
+
+// Load express
 const app = express();
-const awsS3Router = express.Router();
-const dataRouter = express.Router();
-const derivativeRouter = express.Router();
-const oauthRouter = express.Router();
-const recapRouter = express.Router();
 
-// parse application/json
-app.use(bodyParser.urlencoded({extended: false}));
+// Load bodyParser
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(express.static(__dirname + '/www')); // redirect static calls
 
-// Root welcome message
-app.get('/', (req, res) => {
-    res.send('Welcome to Reality Capture Backend App');
-    res.end();
+// Redis endpoints
+const redisRouter = express.Router();
+redisRouter.post('/initSessionState', (req, res) => {
+  client.set('filename', 'blank', redis.print);
+  client.set('filesize', 0, redis.print);
+  client.del('imageUris', redis.print);
+  client.set('objectid', 'blank', redis.print);
+  client.set('photosceneid', 'blank', redis.print);
+  client.set('photoscenelink', 'blank', redis.print);
+  client.set('processingstatus', 'NotStarted', redis.print);
+  client.set('pushToken', 'blank', redis.print);
+  client.set('token', 'blank', redis.print);
+  res.send({'InitializedSessionState': 'Done'});
+  res.end();
 });
+redisRouter.get('/filename', function(req, res) {
+  client.get('filename', function(err, reply) {
+    if (reply) { res.send({'filename': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/filename', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('filename', req.query.filename, function(err, reply) {
+    if (reply) { res.send({'filename': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+})
+redisRouter.get('/filesize', function(req, res) {
+  client.get('filesize', function(err, reply) {
+    if (reply) { res.send({'filesize': reply, 'source': 'redis cache'}); }
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/filesize', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('filesize', req.query.filesize, function(err, reply) {
+    if (reply) { res.send({'filesize': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/photosceneid', function(req, res) {
+  client.get('photosceneid', function(err, reply) {
+    if (reply) { res.send({'photosceneid': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/photosceneid', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('photosceneid', req.query.photosceneid, function(err, reply) {
+    if (reply) { res.send({'photosceneid': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/photoscenelink', function(req, res) {
+  client.get('photoscenelink', function(err, reply) {
+    if (reply) { res.send({'photoscenelink': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/photoscenelink', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('photoscenelink', req.query.photoscenelink, function(err, reply) {
+    if (reply) { res.send({'photoscenelink': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/processingstatus', function(req, res) {
+  client.get('processingstatus', function(err, reply) {
+    if (reply) { res.send({'processingstatus': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/processingstatus', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('processingstatus', req.query.processingstatus, function(err, reply) {
+    if (reply) { res.send({'processingstatus': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/imageUris', function(req, res) {
+  client.lrange('imageUris', 0, -1, function(err, reply) {
+    if (reply) { res.send({'imageUri': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/imageUris', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.rpush(['imageUris', req.query.uri], function(err, reply) {
+    if (reply) { res.send({'imageUri': req.query.uri, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/token', function(req, res) {
+  client.get('token', function(err, reply) {
+    if (reply) { res.send({'token': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/pushToken', function(req, res) {
+  client.get('pushToken', function(err, reply) {
+    if (reply) { res.send({'pushToken': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+app.use('/redis', redisRouter);
 
-// AWS S3 REST endpoints
-awsS3Router.get('/getImageDrop', function(req, res) {
-    if(!req.query.filename) {
-        res.status(400).send('Request query is empty!');
-    }
-    const s3Params = {
-        Bucket: config.S3_BUCKET,
-        ContentType: 'image/jpg',
-        ACL: 'public-read',
-        Key: req.query.filename,
-        Expires: 6000
-    };
-    s3.getSignedUrl('putObject', s3Params, function(err, data) {
-        if(err){
-            console.error('ERROR: ' + err);
-            return res.end();
-        }
-        const returnData = {
-            signedRequest: data,
-            url: 'https://' + config.S3_BUCKET + '.s3.amazonaws.com/' + req.query.filename
-        };
-        app.locals.s3SignedUrl = returnData.signedRequest;
-        res.write(JSON.stringify(returnData));
-        res.end();
+// Expo push endpoints
+const expoRouter = express.Router();
+expoRouter.post('/tokens', function(req, res) {
+  if (!req.body) { res.status(500).send({'Expo': 'Missing body!'}); }
+  if (Expo.isExpoPushToken(req.body.pushToken)) {
+    client.set('pushToken', req.body.pushToken, function(err, reply) {
+      if (reply) { res.send({'pushToken': reply, 'source': 'expo cache'}); } 
+      if (err) { res.status(500).send({'Expo': err}); }
     });
+  } else {
+    res.status(500).send({'Expo': 'Unrecognized Expo push token!'});
+  }
 });
-app.use('/aws/s3', awsS3Router);
+app.use('/expo', expoRouter);
 
-// oAuth POST access token
-oauthRouter.use(bodyParser.json());
-oauthRouter.post('/setToken', function(req, res) {
-    if (!req.body.accessToken) {
-        res.status(400).send('Request body is empty!');
-    } 
-    app.locals.token = req.body.accessToken;
-    res.send(req.body);
-    res.end();
-});
-app.use('/oauth', oauthRouter);
-
-// Reality Capture REST endpoints
-recapRouter.use(bodyParser.json());
-recapRouter.use(bodyParser.urlencoded({extended: true}));
-recapRouter.post('/addImage', function(req, res) {
-    if (!req.body.file) {
-        res.status(400).send('Request body is empty!');
-    }
-    const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/file';
-    const token = app.locals.token;
-    const requestBody = {
-        'photosceneid': app.locals.photosceneid,
-        'type': 'image',
-        'file[0]': req.body.file
-    };
-    logInfoToConsole('/file', 'POST', endpoint, requestBody);
-    sendAuthFormData(endpoint, 'POST', token, requestBody, function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                app.locals.files = result.Files;
-                res.send(result.Files);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-recapRouter.get('/checkOutputFileExists', function(req, res) {
-    if (fs.existsSync(config.localOutputTempFile)) {
-        const stats = fs.statSync(config.localOutputTempFile);
-        res.send({ 'FileExists': 'true', 'FileSize': stats.size });
-    } else {
-        res.send({'FileExists': 'false'});
-    }
-    res.end();
-});
-recapRouter.post('/createPhotoScene', function(req, res) {
-    if (!req.body) {
-        res.status(400).send('Request body is empty!');
-    }
-    const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene';
-    const token = app.locals.token;
-    logInfoToConsole('/photoscene', 'POST', endpoint, req.body);
-    sendAuthForm(endpoint, 'POST', token, req.body, function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            let result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                app.locals.photosceneid = result.Photoscene.photosceneid;
-                res.send(result.Photoscene);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-recapRouter.get('/downloadProcessedData', function(req, res) {
-    if (!app.locals.photosceneid && req.query.format !== null && req.query.format !== undefined) {
-        res.status(400).send('Request body is empty!');
-    }
-    const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT 
-    + '/photoscene/' + app.locals.photosceneid 
-    + '?format=' + req.query.format;
-    const token = app.locals.token;
-    logInfoToConsole('/photoscene/:photosceneid', 'GET', endpoint, null);
-    sendAuthForm(endpoint, 'GET', token, null, function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                app.locals.scenelink = result.Photoscene.scenelink;
-                app.locals.filesize = result.Photoscene.filesize;
-                const file = fs.createWriteStream(config.localOutputTempFile);
-                request(app.locals.scenelink)
-                    .pipe(file)
-                    .on('close', () => {
-                        console.info('INFO: Output file written to /tmp!');
-                    });
-                res.send(result);
-            }
-        }
-        res.end();
-    });
-});
-recapRouter.get('/pollPhotosceneProcessingProgress', function(req, res) {
-    const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene/' + app.locals.photosceneid + '/progress';
-    const token = app.locals.token;
-    logInfoToConsole('/photoscene/:photosceneid/progress', 'GET', endpoint, null);
-    sendAuthForm(endpoint, 'GET', token, null, function(status, body){
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
+// Recap API endpoints
+const recapRouter = express.Router();
 recapRouter.post('/processPhotoScene', function(req, res) {
-    const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene/' + app.locals.photosceneid;
-    const token = app.locals.token;
-    logInfoToConsole('/photoscene/:photosceneid', 'POST', endpoint, null);
-    sendAuthForm(endpoint, 'POST', token, null, function(status, body){
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
+  // Get 2-legged oAuth2 token
+  twoLeggedoAuth2Login().then(function(access_token) {
+    // Create PhotoScene
+    createPhotoScene(access_token).then(function(json_scene) {
+      client.set('photosceneid', json_scene.Photoscene.photosceneid, redis.print);
+      // Start adding S3 image uris to PhotoScene
+      client.lrange('imageUris', 0, -1, (err, imageUris) => {
+        if (err) { 
+          console.error('ERROR: Failed to retrieve image uris!');
+          res.status(500).send({ 'ERROR': err });
         }
-        res.end();
+        if (imageUris.length < 3) {
+          console.error('ERROR: Cannot submit Photoscene with less than three images!');
+          res.status(500).send({'ERROR': 'Cannot submit Photoscene with less than three images!'});
+        }
+        if (imageUris.length > 2) { 
+          addImages(access_token, json_scene.Photoscene.photosceneid, imageUris).then(function(images_json) {
+            // Parse response for errors
+            const foundError = false;
+            for (let idx in images_json.Files.file) {
+              if (images_json.Files.file[idx].msg !== 'No error') {
+                foundError = true;
+                console.error('ERROR: Failed to add image: ' + images_json.Files.file[idx].msg);
+                res.status(500).send(images_json.Files.file[idx].msg);
+                break;
+              };
+            }
+            if (!foundError) {
+              // Start processing photoscene
+              processPhotoScene(access_token, json_scene.Photoscene.photosceneid).then(function(process_json) {
+                if (process_json.msg === 'No error') {
+                  res.send(process_json);
+                  res.end();
+                } else {
+                  console.error('ERROR: Failed to process PhotoScene! ' + process_json.msg);
+                  res.status(500).send(process_json.msg);
+                }
+              }, function(err) {
+                console.error('ERROR: Failed to process PhotoScene!');
+                res.status(500).send(err);
+              });
+            }
+          }, function(err) {
+            console.error('ERROR: Failed to add images to PhotoScene!');
+            res.status(500).send(err);
+          });
+        } 
+      });
+    }, function(err) {
+      console.error('ERROR: Failed to create PhotoScene!');
+      res.status(500).send(err);
     });
+  }, function(err) {
+    console.error('ERROR: Failed to set two legged oAuth2 token!');
+    res.status(500).send(err);
+  });
 });
 recapRouter.get('/scene/callback', function(req, res) {
-    if (app.locals.processingStatus === 'InProgress') {
-        app.locals.processingStatus = 'Completed';
-        res.send({'Callback': 'Success'});
-    } else {
-        res.send({'Callback': 'Failure'});
-    }
-    res.end();
-});
-recapRouter.get('/scene/processingReset', function(req, res) {
-    app.locals.processingStatus = 'NotStarted';
-    res.send({'photoSceneProcessing': app.locals.processingStatus});
-    res.end();
-});
-recapRouter.get('/scene/processingStatus', function(req, res) {
-    if (app.locals.processingStatus !== 'Completed' || app.locals.processingStatus === undefined) {
-        app.locals.processingStatus = 'InProgress';
-    }
-    res.send({'photoSceneProcessing': app.locals.processingStatus });
-    res.end();
+  client.get('processingstatus', function(err, reply) {
+    if (reply === 'InProgress') {
+      client.set('processingstatus', 'Completed', function(err, resp) {
+        if (resp) {
+          client.get('token', function(err, token) {
+            if (token) { 
+              client.get('photosceneid', function(err, photosceneid) {
+                if(photosceneid) {
+                  downloadProcessedData(token, photosceneid).then(function(scenedata) {
+                    client.set('photoscenelink', scenedata.Photoscene.scenelink, function(err, resp) {
+                      if (err) { res.status(500).send({'Redis': err}); }
+                      if (resp) {
+                        client.set('filesize', scenedata.Photoscene.filesize, function(err, resp) {
+                          if (err) { res.status(500).send({'Redis': err}); }
+                          if (resp) { 
+                            const messages = [];
+                            client.get('pushToken', function(err, pushToken) {
+                              if (err) { res.status(500).send({'Redis': err}); }
+                              if (pushToken) {
+                                messages.push({
+                                  to: pushToken,
+                                  sound: 'default',
+                                  body: 'Successfully retrieved photo scenelink',
+                                  data: scenedata
+                                });
+                                const chunks = expo.chunkPushNotifications(messages);
+                                expo.sendPushNotificationsAsync(chunks);
+                                res.send({'processingdata': scenedata});
+                                res.end();
+                              }
+                            })
+                          }
+                        });
+                      }
+                    });
+                  });
+                }
+                if (err) { res.status(500).send({'Redis': err}); }
+              });
+            } 
+            if (err) { res.status(500).send({'Redis': err}); }
+          });
+        }
+        if (err) { res.status(500).send({'Redis': err}); }
+      });
+    } 
+    if (err) { res.status(500).send({'Callback': err}); }
+  });
 });
 app.use('/recap', recapRouter);
 
 
-// Data Management REST endpoints
-dataRouter.post('/createFirstVersion', function(req, res){
-    if(!req.query) {
-        res.status(400).send('Request query parameters are missing!');
-    }
-    const endpoint = config.STORAGE_BASE_ENDPOINT + '/projects/' + req.query.projectid + '/items';
-    const filename = app.locals.filename;
-    const requestBody = {
-        'jsonapi': { 'version': '1.0' },
-        'data': {
-            'type': 'items',
-            'attributes': {
-                'displayName': filename,
-                'extension': { 
-                    'type': 'items:autodesk.core:File', 
-                    'version': '1.0' 
-                }
-            },
-            'relationships': {
-                'tip': { 
-                    'data': { 
-                        'type': 'versions', 
-                        'id': '1' 
-                    } 
-                },
-                'parent': {
-                    'data': {
-                        'type': 'folders',
-                        'id': req.query.folderid
-                    }
-                }
-            },
-        },
-        'included': [
-            {
-                'type': 'versions',
-                'id': '1',
-                'attributes': {
-                    'name': filename,
-                    'extension': {
-                        'type': 'versions:autodesk.core:File',
-                        'version': '1.0'
-                    }
-                },
-                'relationships': {
-                    'storage': {
-                        'data': {
-                            'type': 'objects',
-                            'id': req.query.objectid
-                        }
-                    }
-                }
-            }
-        ]
-    };
-    const token = app.locals.token;
-    logInfoToConsole('/projects/:projectId/items', 'POST', endpoint, requestBody);
-    sendAuthBody(endpoint, 'POST', token, requestBody, 'vnd', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-dataRouter.post('/createStorageLocation', function(req, res){
-    if(!req.query) {
-        res.status(400).send('Request query parameter is missing!');
-    }
-    const endpoint = config.STORAGE_BASE_ENDPOINT + '/projects/' + req.query.projectid + '/storage';
-    let filename = config.localOutputTempFile.split('/').pop();
-    const timestamp = new Date().getTime().toString();
-    filename = timestamp + '_' + filename;
-    app.locals.filename = filename;
-    const requestBody = { 
-        'jsonapi': { 
-            'version': '1.0' 
-        }, 
-        'data': { 
-            'type': 'objects', 
-            'attributes': { 
-                'name': filename
-            }, 
-            'relationships': { 
-                'target': { 
-                    'data': { 
-                        'type': 'folders', 
-                        'id': req.query.folderid 
-                    } 
-                } 
-            } 
-        } 
-    };
-    const token = app.locals.token;
-    logInfoToConsole('/projects/:projectId/storage', 'POST', endpoint, requestBody);
-    sendAuthBody(endpoint, 'POST', token, requestBody, 'vnd', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 201) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // parse body to ensure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-dataRouter.get('/getHubs', function(req, res) {
-    const endpoint = config.PROJECT_BASE_ENDPOINT + '/hubs';
-    const token = app.locals.token;
-    logInfoToConsole('/hubs', 'GET', endpoint, null);
-    sendAuthBody(endpoint, 'GET', token, null, 'default', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-dataRouter.get('/getProjects', function(req, res) {
-    if(!req.query.hubid) {
-        res.status(400).send('Request query parameter is missing!');
-    }
-    const endpoint = config.PROJECT_BASE_ENDPOINT + '/hubs/' + req.query.hubid + '/projects';
-    const token = app.locals.token;
-    logInfoToConsole('/hubs/:hubId/projects', 'GET', endpoint, null);
-    sendAuthBody(endpoint, 'GET', token, null, 'default', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-dataRouter.put('/uploadFileToStorageLocation', function(req, res) {
-    if(!req.query) {
-        res.status(400).send('Request query parameters are missing!');
-    }
-    const endpoint = config.OSS_BASE_ENDPOINT + '/buckets/wip.dm.prod/objects/' + req.query.objectname;
-    const token = app.locals.token;
-    try {
-        let fileStats, buffer;
-        if (fs.existsSync(config.localOutputTempFile)) {
-            fileStats = fs.statSync(config.localOutputTempFile);
-            buffer = fs.readFileSync(config.localOutputTempFile);
-            if(Number(fileStats.size) === Number(app.locals.filesize)) { // only uploads after checking file size
-                logInfoToConsole('/buckets/:bucketkey/objects/:objectName', 'PUT', endpoint, null);
-                sendAuthBody(endpoint, 'PUT', token, buffer, 'default', function(status, body) {
-                    responseToConsole(status, body);
-                    if (status === 200) { // this does not mean the API call succeeded
-                        const result = JSON.parse(body); // let's parse the body to make sure
-                        if (result.Error) {
-                            res.send(result.Error);
-                        } else {
-                            res.send(result);
-                        }
-                    } else {
-                        res.status(status).send(body);
-                    }
-                    res.end();
-                });
-            }
-        }
-    } catch(err) {
-        console.error('ERROR: ' + err.stack);
-    }
-});
-app.use('/data', dataRouter);
-
-// Derivative REST endpoints 
-derivativeRouter.get('/getStatus', function(req, res) {
-    if(!req.query.urn) {
-        res.status(400).send('Request query parameter is missing!');
-    }
-    const endpoint = config.DERIVATIVE_BASE_ENDPOINT + '/designdata/' + req.query.urn + '/manifest';
-    const token = app.locals.token;
-    logInfoToConsole('/designdata/' + req.query.urn + '/manifest', 'GET', endpoint, null);
-    sendAuthBody(endpoint, 'GET', token, null, 'default', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 200) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-derivativeRouter.post('/translateToSVF', function(req, res) {
-    if(!req.query.objectid) {
-        res.status(400).send('Request query parameter is missing!');
-    }
-    const endpoint = config.DERIVATIVE_BASE_ENDPOINT + '/designdata/job';
-    const token = app.locals.token;
-    const base64ObjectId = Buffer.from(JSON.stringify(req.query.objectid)).toString('base64');
-    const requestBody = {
-        'input': {
-            'urn': base64ObjectId,
-            'compressedUrn': true,
-            'rootFilename': 'result.obj'
-        },
-        'output': {
-            'destination': {
-                'region': 'us'
-            },
-            'formats': [
-                {
-                    'type': 'svf',
-                    'views': [
-                        '2d',
-                        '3d'
-                    ]
-                }
-            ]
-        }
-    };
-    logInfoToConsole('/designdata/job', 'POST', endpoint, requestBody);
-    sendAuthBody(endpoint, 'POST', token, requestBody, 'json', function(status, body) {
-        responseToConsole(status, body);
-        if (status === 201) { // this does not mean the API call succeeded
-            const result = JSON.parse(body); // let's parse the body to make sure
-            if (result.Error) {
-                res.send(result.Error);
-            } else {
-                res.send(result);
-            }
-        } else {
-            res.status(status).send(body);
-        }
-        res.end();
-    });
-});
-app.use('/derivative', derivativeRouter);
-
 module.exports = app;
 
-function logInfoToConsole(endPoint, httpMethod, url, body) {
-    if (body) {
-        console.info('INFO: ' + httpMethod + ' ' + endPoint 
-        + '      Url: ' + url
-        + '      Body:' + JSON.stringify(body));
-    } else {
-        console.info('INFO: ' + httpMethod + ' ' + endPoint 
-        + '      Url: ' + url);
+function addImages(access_token, photosceneid, imageUris) {
+  const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/file';
+  const bodyData = {
+    'photosceneid': photosceneid,
+    'type': 'image'
+  };
+  for (var idx in imageUris) {
+    bodyData['file[' + idx + ']'] = imageUris[idx];
+  }
+  logInfoToConsole('/file', 'POST', endpoint, bodyData);
+  const options = {
+    formData: bodyData,
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true,
+    method: 'POST',
+    uri: endpoint
+  }
+  return rp(options);
+}
+
+function createPhotoScene(access_token) {
+  const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene';
+  const bodyData = 'scenename=' + config.SCENENAME
+  + '&scenetype=' + config.SCENETYPE
+  + '&format=' + config.FORMAT
+  + '&callback=' + config.AWS_LAMBDA_BASE_ENDPOINT + config.SCENECALLBACK;
+  logInfoToConsole('/photoscene', 'POST', endpoint, bodyData);
+  return fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + access_token,
+      'Content-Type': 'application/x-www-form-urlencoded'    
+    },
+    body: bodyData
+  })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else if (res.status === 401) {
+        console.error('ERROR: You are not authorized!');
+      } else {
+        console.error('ERROR: Failed to create PhotoScene!');
+      }
+    })
+    .catch((err) => {
+      console.error('ERROR: Failed to create PhotoScene!');
+    });
+}
+
+function downloadProcessedData(access_token, photosceneid) {
+  const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT 
+  + '/photoscene/' + photosceneid + '?format=' + config.FORMAT;
+  logInfoToConsole('/photoscene/:photosceneid', 'GET', endpoint, null);
+  return fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + access_token,
+      'Content-Type': 'application/json'    
     }
-    
+  })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else if (res.status === 401) {
+        console.error('ERROR: You are not authorized!');
+      } else {
+        console.error('ERROR: Failed to download processed data!');
+      }
+    })
+    .catch((err) => {
+      console.error('ERROR: Failed to download processed data!');
+    });
+}
+
+function logInfoToConsole(endPoint, httpMethod, url, body) {
+  if (body) {
+    console.info('INFO: ' + httpMethod + ' ' + endPoint 
+    + '      Url: ' + url
+    + '      Body:' + JSON.stringify(body));
+  } else {
+    console.info('INFO: ' + httpMethod + ' ' + endPoint 
+    + '      Url: ' + url);
+  } 
+}
+
+function processPhotoScene(access_token, photosceneid) {
+  const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene/' + photosceneid;
+  logInfoToConsole('/photoscene/:photosceneid', 'POST', endpoint, null);
+  return fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + access_token,
+      'Content-Type': 'application/json'    
+    }
+  })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else if (res.status === 401) {
+        console.error('ERROR: You are not authorized!');
+      } else {
+        console.error('ERROR: Failed to create PhotoScene!');
+      }
+    })
+    .catch((err) => {
+      console.error('ERROR: Failed to create PhotoScene!');
+    });
 }
 
 function responseToConsole(status, body) {
-    if (status && body) {
-        console.info('INFO: Response Status: ' + status
-            + '               Body: ' + body);
-    }
+  if (status && body) {
+    console.info('INFO: Response Status: ' + status
+    + '               Body: ' + body);
+  }
 }
 
-function sendAuthBody(endPoint, httpMethod, token, bodyData, specialHeaders, callback) {
-    let requestBody = '';
-    if(bodyData) {
-        if(bodyData instanceof Buffer) {
-            requestBody = bodyData;
-        } else {
-            requestBody = JSON.stringify(bodyData);
+function twoLeggedoAuth2Login() {
+  return new Promise(function(resolve, reject) {
+    const autoRefresh = true;
+    const oAuth2TwoLegged = new forgeSDK.AuthClientTwoLegged(
+      process.env.FORGE_APP_ID,
+      process.env.FORGE_APP_SECRET, 
+      config.SCOPES,
+      autoRefresh
+    );
+    oAuth2TwoLegged.authenticate().then(function(credentials) {
+      client.set('token', credentials.access_token, function(err, reply) {
+        if (reply) { 
+          console.info('INFO: access_token: ' + credentials.access_token);
+          resolve(credentials.access_token);
+        } 
+        if (err) { 
+          console.error('ERROR: failed to cache access token!');
+          reject(new Error('ERROR: failed to cache access token!'));
         }
-    }
-    let headers = {};
-    if (specialHeaders === 'default') {
-        headers = {'Authorization': 'Bearer ' + token};
-    }
-    if (specialHeaders === 'json') {
-        headers = {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        };
-    }
-    if (specialHeaders === 'vnd') {
-        headers = {
-            'Accept': 'application/vnd.api+json',
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/vnd.api+json'
-        };
-    }
-    request({
-        url: endPoint,
-        method: httpMethod,
-        headers: headers,
-        body: requestBody
-    }, function(error, response, body) {
-        if(callback) {
-            callback(error || response.statusCode, body);
-        } else {
-            if(error) {
-                console.error('ERROR: ' + error);
-            } else {
-                console.info('INFO: ' + response.statusCode, body);
-            }
-        }
+      });
+    }, function(err) {
+      console.error('ERROR: failed to login to Forge! ' + err);
+      reject(new Error('ERROR: failed to login to Forge! ' + err));
     });
+  });
 }
-
-function sendAuthForm(endPoint, httpMethod, token, formData, callback) {
-    let requestForm = '';
-    if(formData) {
-        requestForm = formData;
-    }
-    request({
-        url: endPoint,
-        method: httpMethod,
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'    
-        },
-        form: requestForm
-    }, function(error, response, body) {
-        if(callback) {
-            callback(error || response.statusCode, body);
-        } else {
-            if(error) {
-                console.error('ERROR: ' + error);
-            } else {
-                console.info('INFO: ' + response.statusCode, body);
-            }
-        }
-    });
-}
-
-function sendAuthFormData(endPoint, httpMethod, token, formData, callback) {
-    let requestFormData = '';
-    if(formData) {
-        requestFormData = formData;
-    }
-    request({
-        url: endPoint,
-        method: httpMethod,
-        headers: {
-            'Authorization': 'Bearer ' + token  
-        },
-        formData: requestFormData
-    }, function(error, response, body) {
-        if(callback) {
-            callback(error || response.statusCode, body);
-        } else {
-            if(error) {
-                console.error('ERROR: ' + error);
-            } else {
-                console.info('INFO: ' + response.statusCode, body);
-            }
-        }
-    });
-}
-
-
-
