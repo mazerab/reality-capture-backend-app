@@ -1,18 +1,19 @@
 'use strict';
 
 module.exports = {
-
-    // Forge endpoints
-    DERIVATIVE_BASE_ENDPOINT: 'https://developer.api.autodesk.com/modelderivative/v2',
-    OSS_BASE_ENDPOINT: 'https://developer.api.autodesk.com/oss/v2',
-    PROJECT_BASE_ENDPOINT: 'https://developer.api.autodesk.com/project/v1',
-    REALITY_CAPTURE_BASE_ENDPOINT: 'https://developer.api.autodesk.com/photo-to-3d/v1',
-    STORAGE_BASE_ENDPOINT: 'https://developer.api.autodesk.com/data/v1',
-
-    // AWS configuration
-    S3_BUCKET: 'reality-capture-images',
-
-    // Upload folder path to store the output file
-    localOutputTempFile: '/tmp/reality-capture-output.zip'
-
+	// Autodesk Forge settings
+	REALITY_CAPTURE_BASE_ENDPOINT: 'https://developer.api.autodesk.com/photo-to-3d/v1',
+	SCOPES: ['bucket:create','bucket:read','data:create','data:read','data:write'],
+	// Redis settings
+	REDIS_ENDPOINT: 'redis-19812.c15.us-east-1-2.ec2.cloud.redislabs.com',
+	REDIS_PORT: 19812,
+	// Amazon settings
+	AWS_LAMBDA_BASE_ENDPOINT: 'https://xikeyybzq8.execute-api.us-east-1.amazonaws.com/demo',
+	// Autodesk Recap settings
+	// Available formats are rcm (Autodesk Recap Photo Mesh), 
+	// rcs (Autodesk Recap Point Cloud) and obj (Wavefront object).
+	FORMAT: 'obj',
+	SCENENAME: 'reality-capture-mobile-app',
+	SCENETYPE: 'object',
+	SCENECALLBACK: '/recap/scene/callback',
 };
