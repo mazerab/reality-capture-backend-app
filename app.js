@@ -40,6 +40,7 @@ redisRouter.post('/initSessionState', (req, res) => {
   client.set('processingstatus', 'NotStarted', redis.print);
   client.set('pushToken', 'blank', redis.print);
   client.set('token', 'blank', redis.print);
+  client.set('urn', 'blank', redis.print);
   res.send({'InitializedSessionState': 'Done'});
   res.end();
 });
@@ -66,6 +67,19 @@ redisRouter.post('/filesize', function(req, res) {
   if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
   client.set('filesize', req.query.filesize, function(err, reply) {
     if (reply) { res.send({'filesize': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/objectid', function(req, res) {
+  client.get('objectid', function(err, reply) {
+    if (reply) { res.send({'objectid': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/objectid', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('objectid', req.query.photosceneid, function(err, reply) {
+    if (reply) { res.send({'objectid': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
@@ -130,6 +144,19 @@ redisRouter.get('/token', function(req, res) {
 redisRouter.get('/pushToken', function(req, res) {
   client.get('pushToken', function(err, reply) {
     if (reply) { res.send({'pushToken': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/urn', function(req, res) {
+  client.get('urn', function(err, reply) {
+    if (reply) { res.send({'urn': reply, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.post('/urn', function(req, res) {
+  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
+  client.set('urn', req.query.photoscenelink, function(err, reply) {
+    if (reply) { res.send({'urn': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
@@ -226,7 +253,7 @@ recapRouter.get('/scene/callback', function(req, res) {
                         client.set('filesize', scenedata.Photoscene.filesize, function(err, resp) {
                           if (err) { res.status(500).send({'Redis': err}); }
                           if (resp) { 
-                            const messages = [];
+                            let messages = [];
                             client.get('pushToken', function(err, pushToken) {
                               if (err) { res.status(500).send({'Redis': err}); }
                               if (pushToken) {
