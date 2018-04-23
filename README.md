@@ -58,6 +58,8 @@ Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-ex
 1. Make a code change to file ```'www/index.html'```
 1. Run `npm run update`... It outputs a 'new URL'
 1. Open the 'new URL' in a browser to see your changes.
+1. Using your favorite text editor, open the config.js file from the root directory
+1. Input the correct values in REDIS_ENDPOINT and AWS_LAMBDA_BASE_ENDPOINT variables, save the changes
 
 ## Testing
 
