@@ -65,6 +65,16 @@ Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-ex
 
 Anytime you need to make code changes, you should use the 'update' command to push your changes to the AWS lambda function. 
 
+### Increasing the Lambda Function timeout value
+
+1. Login to your AWS console
+1. Navigate to Lambda Functions
+1. Open your new Lambda function
+1. Change the Node.js version to 8.10
+1. Increase memory to 512 Mb and timeout value to 30 seconds
+1. Connect the demo alias to $LATEST version
+1. Save the changes
+
 ## Testing
 
 Go back to your mobile app to edit the `./constants/Config.js` file to have the correct AWS lambda endpoint in the variable named **AWS_RECAP_LAMBDA_BASE_ENDPOINT**. Save the change and submit 3 or more images for processing by pressing the button called "Process Photoscene".
