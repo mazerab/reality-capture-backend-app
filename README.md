@@ -2,6 +2,20 @@
 
 AWS lambda backend app for the Autodesk Forge Reality Capture [mobile app](https://github.com/mazerab/reality-capture-mobile-app).
 
+## Introduction
+
+This server app calls the Forge Reality Capture API to process images found on your smartphones and generate an OBJ file. An OBJ file is an open geometry definition file format that represents 3D geometry alone. 
+
+The flow is simple:
+
+The mobile app lets users select image files from the camera roll and upload them to a S3 bucket.
+
+1. The server app logs into Forge using 2-legged oAuth flow
+1. The server app creates a new photoscene. The API documentation is found [here](https://developer.autodesk.com/en/docs/reality-capture/v1/reference/http/photoscene-POST/)
+1. The images are added to the photoscene using the images' S3 URLs. The API documentation can be accessed [here](https://developer.autodesk.com/en/docs/reality-capture/v1/reference/http/file-POST/)
+1. The photoscene is sent for processing. Refer to API documentation [here](https://developer.autodesk.com/en/docs/reality-capture/v1/reference/http/photoscene-:photosceneid-POST/)
+1. When the processing is complete, the callback URL is hit and a photoscene link is returned
+
 ## Getting Started
 
 Before you start, make sure you read [Serverless Code with Amazons AWS and Claudia](https://vincetocco.com/serverless-code/) to learn more about the setup.
