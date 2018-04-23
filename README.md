@@ -4,7 +4,7 @@ AWS lambda backend app for the Autodesk Forge Reality Capture [mobile app](https
 
 ## Introduction
 
-This server app calls the Forge Reality Capture API to process images found on your smartphones and generate an OBJ file. An OBJ file is an open geometry definition file format that represents 3D geometry alone. 
+This server app calls the Forge Reality Capture API to process images found on your smartphone and generate an OBJ file. An OBJ file is an open geometry definition file format that represents 3D geometry alone. 
 
 The flow is simple:
 
