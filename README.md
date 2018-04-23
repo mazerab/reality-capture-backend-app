@@ -59,11 +59,11 @@ Redis Cloud is used here to store session data. AWS Lambda functions are statele
 
 Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-express.html) 'update' command to re-deploy a small html code change. Claudia handles the task of zipping, uploading and re-wiring node.js endpoints to 'AWS-Lambda & API-Gateway' automatically. 
 
-1. Make a code change to file ```'www/index.html'```
-1. Run `npm run update`... It outputs a 'new URL'
-1. Open the 'new URL' in a browser to see your changes.
+1. Make a code change to file ```'www/index.html'```, save the change
 1. Using your favorite text editor, open the *config.js* file from the root directory
 1. Input the correct values in **REDIS_ENDPOINT** and **AWS_LAMBDA_BASE_ENDPOINT** variables, save the changes
+1. Run `npm run update`... It outputs a 'new URL'
+1. Open the 'new URL' in a browser to see your changes.
 
 ## Testing
 
