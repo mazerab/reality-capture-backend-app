@@ -21,21 +21,23 @@ The mobile app lets users select image files from the camera roll and upload the
 Before you start, make sure you read [Serverless Code with Amazons AWS and Claudia](https://vincetocco.com/serverless-code/) to learn more about the setup.
 
 1. Create a new repository directory
-2. Download [this repository](https://github.com/mazerab/reality-capture-backend-app/archive/master.zip) and extract to the new directory
+1. Download [this repository](https://github.com/mazerab/reality-capture-backend-app/archive/master.zip) and extract to the new directory
 
 ### Prerequisites
 
 1. Install [Node.js and npm](https://www.npmjs.com/get-npm)
-2. Run `npm install npm@latest -g`
+1. Run `npm install npm@latest -g`
+
+
 
 ### Installing
 
 1. Browse to the repository directory
-2. Run `npm install`
-3. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
-4. Edit the file `package.json` to update the Forge App ID and secret, Amazon S3 bucket and Redis password on the setvars script line  `--set-env FORGE_APP_ID=xxx,FORGE_APP_SECRET=yyy,S3_BUCKET=reality-capture-images,REDIS_PASSWORD=zzz`
-5. Run `npm run setvars` to push the environment variables to Lambda.
-6. Open the 'new URL' in a browser
+1. Run `npm install`
+1. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
+1. Edit the file `package.json` to update the Forge App ID and secret, Amazon S3 bucket and Redis password on the setvars script line  `--set-env FORGE_APP_ID=xxx,FORGE_APP_SECRET=yyy,S3_BUCKET=reality-capture-images,REDIS_PASSWORD=zzz`
+1. Run `npm run setvars` to push the environment variables to Lambda.
+1. Open the 'new URL' in a browser
 
 **Example:** [https://adc6qwtnce.execute-api.us-east-1.amazonaws.com/demo/](https://adc6qwtnce.execute-api.us-east-1.amazonaws.com/demo/)
 
@@ -46,8 +48,8 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 Below I demonstrate ['Claudia.js'](https://claudiajs.com/tutorials/serverless-express.html) 'update' command to re-deploy a small html code change. Claudia handles the task of zipping, uploading and re-wiring node.js endpoints to 'AWS-Lambda & API-Gateway' automatically. 
 
 1. Make a code change to file ```'www/index.html'```
-2. Run `npm run update`... It outputs a 'new URL'
-3. Open the 'new URL' in a browser to see your changes.
+1. Run `npm run update`... It outputs a 'new URL'
+1. Open the 'new URL' in a browser to see your changes.
 
 ## Testing
 
