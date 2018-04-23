@@ -19,7 +19,7 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 1. Browse to the repository directory
 2. Run `npm install`
 3. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
-4. Edit the file `package.json` to update the Amazon access key ID and secret on line 11 `--set-env AWS_ACCESS_KEY_ID=xxx,AWS_SECRET_ACCESS_KEY=xxx`
+4. Edit the file `package.json` to update the Forge App ID and secret, Amazon S3 bucket and Redis password on line 11 `--set-env FORGE_APP_ID=xxx,FORGE_APP_SECRET=yyy,S3_BUCKET=reality-capture-images,REDIS_PASSWORD=zzz`
 5. Run `npm run setvars` to push the environment variables to Lambda.
 6. Open the 'new URL' in a browser
 
