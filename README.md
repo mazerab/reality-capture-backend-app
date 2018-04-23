@@ -67,19 +67,19 @@ Anytime you need to make code changes, you should use the 'update' command to pu
 
 ### AWS Lambda Function Configuration
 
-1. Login to your AWS console
-1. Navigate to Lambda Functions
-1. Open your new Lambda function
-1. Change the Node.js version to 8.10
+* Login to your AWS console
+* Navigate to Lambda Functions
+* Open your new Lambda function
+* Change the Node.js version to 8.10
 
 ![Node Version](/www/assets/nodejs-8.png)
-1. Increase memory to 512 Mb and timeout value to 30 seconds
+* Increase memory to 512 Mb and timeout value to 30 seconds
 
 ![Timeout](/www/assets/memory-timeout.png)
-1. Connect the demo alias to $LATEST version
+* Connect the demo alias to $LATEST version
 
 ![Alias](/www/assets/demo-alias.png)
-1. Save the changes
+* Save the changes
 
 ## Testing
 
