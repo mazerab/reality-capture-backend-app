@@ -47,7 +47,7 @@ Redis Cloud is used here to store session data. AWS Lambda functions are statele
 1. Save the changes
 1. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL', make a note of its value as you will need to input the URL in the *config.js* file under the **AWS_LAMBDA_BASE_ENDPOINT** variable.
 
-![npm run create]()
+![npm run create](/www/assets/npm-run-create.png)
 1. Run `npm run setvars` to push the environment variables to Lambda.
 1. Open the 'new URL' in a browser
 
