@@ -83,7 +83,7 @@ Anytime you need to make code changes, you should use the 'update' command to pu
 
 ## Testing
 
-Go back to your mobile app to edit the `./constants/Config.js` file to have the correct AWS lambda endpoint in the variable named **AWS_RECAP_LAMBDA_BASE_ENDPOINT**. Save the change and submit 3 or more images for processing by pressing the button called "Process Photoscene".
+Go back to your mobile app to edit the `./constants/Config.js` file to have the correct AWS lambda endpoint in the variable named **AWS_RECAP_LAMBDA_BASE_ENDPOINT**. Save the change and submit **3 or more** images for processing by pressing the button called *"Process Photoscene"*.
 
 This should generate a new OBJ file. You can validate the photoscenelink has the right data by browsing to the AWS endpoint /demo/redis/photoscenelink and use that URL to download the OBJ file locally. 
 
