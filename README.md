@@ -33,6 +33,7 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 #### Redis Cloud
 
 1. Sign-up for a free Redis Cloud account [here](https://app.redislabs.com/#/sign-up/cloud)
+1. Setup a new subscription, database and connect by following the [quick setup guide](https://redislabs.com/redis-cloud-documentation/quick-setup-redis-cloud/)
 
 
 ### Installing
