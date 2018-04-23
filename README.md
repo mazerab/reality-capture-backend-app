@@ -43,7 +43,9 @@ Redis Cloud is used here to store session data. AWS Lambda functions are statele
 1. Browse to the repository directory
 1. Run `npm install`
 1. Run `npm run create` to send everything up to AWS Lambda. It will return a 'new URL'.
-1. Edit the file `package.json` to update the Forge App ID and secret, Amazon S3 bucket and Redis password on the setvars script line  `--set-env FORGE_APP_ID=xxx,FORGE_APP_SECRET=yyy,S3_BUCKET=reality-capture-images,REDIS_PASSWORD=zzz`
+1. Edit the file `package.json` to change the app name on line 2. Pick a name that is unique to you.
+1. Continue editing the same file `package.json` to update the Forge App ID and secret, Amazon S3 bucket and Redis password on the setvars script line  `--set-env FORGE_APP_ID=xxx,FORGE_APP_SECRET=yyy,S3_BUCKET=reality-capture-images,REDIS_PASSWORD=zzz`
+1. Save the changes
 1. Run `npm run setvars` to push the environment variables to Lambda.
 1. Open the 'new URL' in a browser
 
