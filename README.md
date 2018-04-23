@@ -25,9 +25,14 @@ Before you start, make sure you read [Serverless Code with Amazons AWS and Claud
 
 ### Prerequisites
 
+#### Node.js
+
 1. Install [Node.js and npm](https://www.npmjs.com/get-npm)
 1. Run `npm install npm@latest -g`
 
+#### Redis Cloud
+
+1. Sign-up for a free Redis Cloud account [here](https://app.redislabs.com/#/sign-up/cloud)
 
 
 ### Installing
