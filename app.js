@@ -39,6 +39,7 @@ redisRouter.post('/initSessionState', (req, res) => {
   client.set('photoscenelink', 'blank', redis.print);
   client.set('processingstatus', 'NotStarted', redis.print);
   client.set('pushToken', 'blank', redis.print);
+  client.set('svfurn', 'blank', redis.print);
   client.set('token', 'blank', redis.print);
   client.set('urn', 'blank', redis.print);
   res.send({'InitializedSessionState': 'Done'});
@@ -132,6 +133,12 @@ redisRouter.post('/imageUris', function(req, res) {
   if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
   client.rpush(['imageUris', req.query.uri], function(err, reply) {
     if (reply) { res.send({'imageUri': req.query.uri, 'source': 'redis cache'}); } 
+    if (err) { res.status(500).send({'Redis': err}); }
+  });
+});
+redisRouter.get('/svfurn', function(req, res) {
+  client.get('svfurn', function(err, reply) {
+    if (reply) { res.send({'svfurn': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
@@ -287,8 +294,30 @@ recapRouter.get('/scene/callback', function(req, res) {
     if (err) { res.status(500).send({'Callback': err}); }
   });
 });
+recapRouter.delete('/deletePhotoScene', function(req, res) {
+  // Get 2-legged oAuth2 token
+  twoLeggedoAuth2Login().then(function(access_token) {
+    client.get('photosceneid', function(err, photosceneid) {
+      if (err) { res.status(500).send({'Redis': err}); }
+      if(photosceneid) { 
+          deletePhotoScene(access_token, photosceneid).then(
+            function(delete_json) {
+              console.info(`INFO: Successfully deleted PhotoScene: ${JSON.stringify(delete_json)}`);
+              res.send(delete_json);
+              res.end();
+            }, function(delete_err) {
+              console.error('ERROR: Failed to delete PhotoScene!');
+              res.status(500).send(delete_err);
+            }
+          );
+      }
+    });
+  }, function(err) {
+    console.error('ERROR: Failed to set two legged oAuth2 token!');
+    res.status(500).send(err);
+  });
+});
 app.use('/recap', recapRouter);
-
 
 module.exports = app;
 
@@ -338,6 +367,30 @@ function createPhotoScene(access_token) {
     })
     .catch((err) => {
       console.error('ERROR: Failed to create PhotoScene!');
+    });
+}
+
+function deletePhotoScene(access_token, photosceneid) {
+  const endpoint = config.REALITY_CAPTURE_BASE_ENDPOINT + '/photoscene/' + photosceneid;
+  logInfoToConsole('/photoscene/:photosceneid', 'DELETE', endpoint, null);
+  return fetch(endpoint, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': 'Bearer ' + access_token,
+      'Content-Type': 'application/json'    
+    }
+  })
+    .then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else if (res.status === 401) {
+        console.error('ERROR: You are not authorized!');
+      } else {
+        console.error('ERROR: Failed to delete PhotoScene!');
+      }
+    })
+    .catch((err) => {
+      console.error('ERROR: Failed to delete PhotoScene!');
     });
 }
 
