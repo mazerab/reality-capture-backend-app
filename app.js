@@ -39,9 +39,7 @@ redisRouter.post('/initSessionState', (req, res) => {
   client.set('photoscenelink', 'blank', redis.print);
   client.set('processingstatus', 'NotStarted', redis.print);
   client.set('pushToken', 'blank', redis.print);
-  client.set('svfurn', 'blank', redis.print);
   client.set('token', 'blank', redis.print);
-  client.set('urn', 'blank', redis.print);
   res.send({'InitializedSessionState': 'Done'});
   res.end();
 });
@@ -51,35 +49,14 @@ redisRouter.get('/filename', function(req, res) {
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
-redisRouter.post('/filename', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('filename', req.query.filename, function(err, reply) {
-    if (reply) { res.send({'filename': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-})
 redisRouter.get('/filesize', function(req, res) {
   client.get('filesize', function(err, reply) {
     if (reply) { res.send({'filesize': reply, 'source': 'redis cache'}); }
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
-redisRouter.post('/filesize', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('filesize', req.query.filesize, function(err, reply) {
-    if (reply) { res.send({'filesize': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
 redisRouter.get('/objectid', function(req, res) {
   client.get('objectid', function(err, reply) {
-    if (reply) { res.send({'objectid': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
-redisRouter.post('/objectid', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('objectid', req.query.photosceneid, function(err, reply) {
     if (reply) { res.send({'objectid': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
@@ -90,22 +67,8 @@ redisRouter.get('/photosceneid', function(req, res) {
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
-redisRouter.post('/photosceneid', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('photosceneid', req.query.photosceneid, function(err, reply) {
-    if (reply) { res.send({'photosceneid': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
 redisRouter.get('/photoscenelink', function(req, res) {
   client.get('photoscenelink', function(err, reply) {
-    if (reply) { res.send({'photoscenelink': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
-redisRouter.post('/photoscenelink', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('photoscenelink', req.query.photoscenelink, function(err, reply) {
     if (reply) { res.send({'photoscenelink': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
@@ -136,12 +99,6 @@ redisRouter.post('/imageUris', function(req, res) {
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
-redisRouter.get('/svfurn', function(req, res) {
-  client.get('svfurn', function(err, reply) {
-    if (reply) { res.send({'svfurn': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
 redisRouter.get('/token', function(req, res) {
   client.get('token', function(err, reply) {
     if (reply) { res.send({'token': reply, 'source': 'redis cache'}); } 
@@ -151,19 +108,6 @@ redisRouter.get('/token', function(req, res) {
 redisRouter.get('/pushToken', function(req, res) {
   client.get('pushToken', function(err, reply) {
     if (reply) { res.send({'pushToken': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
-redisRouter.get('/urn', function(req, res) {
-  client.get('urn', function(err, reply) {
-    if (reply) { res.send({'urn': reply, 'source': 'redis cache'}); } 
-    if (err) { res.status(500).send({'Redis': err}); }
-  });
-});
-redisRouter.post('/urn', function(req, res) {
-  if (!req.query) { res.status(500).send({'Redis': 'Missing query parameter'}); }
-  client.set('urn', req.query.photoscenelink, function(err, reply) {
-    if (reply) { res.send({'urn': reply, 'source': 'redis cache'}); } 
     if (err) { res.status(500).send({'Redis': err}); }
   });
 });
