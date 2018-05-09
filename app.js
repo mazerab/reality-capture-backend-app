@@ -5,6 +5,7 @@ const Expo = require('expo-server-sdk');
 const express = require('express');
 const fetch = require('node-fetch');
 const forgeSDK = require('forge-apis');
+const helmet = require('helmet');
 const redis = require('redis');
 const rp = require('request-promise');
 
@@ -23,6 +24,7 @@ const expo = new Expo();
 
 // Load express
 const app = express();
+app.use(helmet());
 
 // Load bodyParser
 app.use(bodyParser.urlencoded({ extended: false }));
