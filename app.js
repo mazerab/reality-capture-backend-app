@@ -198,7 +198,7 @@ recapRouter.get('/scene/callback', function(req, res) {
           client.get('token', function(err, token) {
             if (token) { 
               client.get('photosceneid', function(err, photosceneid) {
-                if(photosceneid) {
+                if (photosceneid) {
                   downloadProcessedData(token, photosceneid).then(function(scenedata) {
                     client.set('photoscenelink', scenedata.Photoscene.scenelink, function(err, resp) {
                       if (err) { res.status(500).send({'Redis': err}); }
@@ -245,7 +245,7 @@ recapRouter.delete('/deletePhotoScene', function(req, res) {
   twoLeggedoAuth2Login().then(function(access_token) {
     client.get('photosceneid', function(err, photosceneid) {
       if (err) { res.status(500).send({'Redis': err}); }
-      if(photosceneid) { 
+      if (photosceneid) { 
           deletePhotoScene(access_token, photosceneid).then(
             function(delete_json) {
               console.info(`INFO: Successfully deleted PhotoScene: ${JSON.stringify(delete_json)}`);
