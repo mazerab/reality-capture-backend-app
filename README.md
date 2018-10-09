@@ -104,7 +104,7 @@ This should generate a new OBJ file. You can validate the photoscenelink has the
 
 ## Authors
 
-Bastien Mazeran, Autodesk Inc.
+Bastien Mazeran [@BastienMazeran](https://twitter.com/BastienMazeran), Autodesk Inc.
 
 ## License
 
