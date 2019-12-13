@@ -38,7 +38,7 @@
     "express": "4.17.1",
     "forge-apis": "^0.4.3",
     "helmet": "3.21.0",
-    "npm": "6.11.3",
+    "npm": "6.13.4",
     "redis": "^2.8.0",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
