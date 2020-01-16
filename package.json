@@ -33,23 +33,22 @@
   "dependencies": {
     "aws-serverless-express": "3.3.6",
     "body-parser": "1.19.0",
-    "claudia": "5.8.0",
-    "expo-server-sdk": "3.3.0",
+    "claudia": "5.12.0",
+    "expo-server-sdk": "3.4.0",
     "express": "4.17.1",
-    "forge-apis": "^0.4.3",
-    "helmet": "3.21.0",
-    "npm": "6.13.4",
-    "redis": "^2.8.0",
-    "request": "^2.87.0",
-    "request-promise": "^4.2.2",
-    "standard": "14.1.0"
+    "forge-apis": "0.7.2",
+    "helmet": "3.21.2",
+    "redis": "2.8.0",
+    "request": "2.88.0",
+    "request-promise": "4.2.5",
+    "standard": "14.3.1"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "4.2.0",
     "chai-http": "4.3.0",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-config-google": "0.14.0",
-    "eslint-plugin-import": "2.18.2",
-    "mocha": "6.2.0"
+    "eslint-plugin-import": "2.20.0",
+    "mocha": "7.0.0"
   }
 }
