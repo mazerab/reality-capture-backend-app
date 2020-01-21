@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 module.exports = {
   // Autodesk Forge settings
@@ -18,4 +18,4 @@ module.exports = {
   SCENENAME: 'reality-capture-mobile-app',
   SCENETYPE: 'object',
   SCENECALLBACK: '/recap/scene/callback'
-}
+};
