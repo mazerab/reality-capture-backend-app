@@ -1,7 +1,7 @@
 'use strict';
 
 const bodyParser = require('body-parser');
-const Expo = require('expo-server-sdk');
+const { Expo } = require('expo-server-sdk');
 const express = require('express');
 const forgeSDK = require('forge-apis');
 const helmet = require('helmet');
