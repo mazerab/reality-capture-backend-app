@@ -32,10 +32,10 @@
   "homepage": "https://github.com/mazerab/reality-capture-backend-app#readme",
   "dependencies": {
     "aws-serverless-express": "3.3.6",
-    "body-parser": "1.19.0",
+    "body-parser": "1.20.1",
     "claudia": "5.12.0",
     "expo-server-sdk": "3.4.0",
-    "express": "4.17.1",
+    "express": "4.18.2",
     "forge-apis": "0.7.2",
     "helmet": "3.21.2",
     "redis": "2.8.0",
